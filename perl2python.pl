@@ -3,6 +3,7 @@
 # written by andrewt@cse.unsw.edu.au September 2013
 # as a starting point for COMP2041/9041 assignment 
 # http://cgi.cse.unsw.edu.au/~cs2041/13s2/assignments/perl2python
+# edited by Stefanus Husin z3442577
 use File::Basename;
 
 while ($line = <>) {
@@ -28,13 +29,32 @@ while ($line = <>) {
 		# at the same time by not using $1, and change it to s to keep indentation.
 
 		#IF there is $variable then remove the " else do not remove it. 
-		print "LINE PAST EHRE";
+		
 		if($line =~ /\$/){
+
 			$line =~ s/\$|"//g;
+
 		} elsif ($line =~ /join/){
-			$line =~ s/join/' '.join(sys.argv[1:])/g;
+
+			$temp = $line;
+			$temp =~ s/print join\(//g;
+			$temp =~ s/,.*//g;
+			$temp =~ s/\n//g;
+
+			print "TEMP IS $temp\n";
+			print "ORIGINAL LINE $line";
+
+			if($line =~ /\@ARGV/){
+				
+				$for =~ s/\@ARGV/(sys.argv[1:])/g;
+				print "AFTER ARGV SUB $line";
+			}
+			$line =~ s/join/$temp.join()/g;
+
+			$line = "print $temp.join($forARG)";
+			
 		}
-		$line =~ s/\\n|;//g;
+		$line =~ s/\\n|;|,//g;
 		print "$line";
 		
 		
@@ -47,12 +67,12 @@ while ($line = <>) {
 		
 		#to remove things with a comma and semi collon inside it 
 		#and anchor it at the last part of the sentence to match new line in a double colon
-			if($line =~ /, ".*"/){
+			if($line =~ /, ".*"/ | $line =~ /,/){
 				$line =~ s/, "\\n"$//;
 			} elsif ($line =~ /if/ || $line =~ /while/){
 				
 
-				$line =~ s/(\)|\()//g;
+				$line =~ s/(\)|\()|//g;
 				$line =~ s/{|\}|\{|}//g;
 				$line =~ s/ \n/:\n/;
 
@@ -61,21 +81,34 @@ while ($line = <>) {
 					$line =~ s/eq/==/g;
 				}
 
-			}elsif ($line =~ /<STDIN>/){
+			} elsif ($line =~ /<STDIN>/){
 				#$IMPORT{needed} = 'import sys';
 
 				$line =~ s/<STDIN>/sys.stdin.readline()/g;
-			}elsif ($line =~ /chomp/){
+			} elsif ($line =~ /chomp/){
 
 				#CHANGE THE CHOMP TO line.rstrip.
 				$line =~ s/chomp //g;
 				$line =~ s/\n/ = line.rstrip()\n/;
 
+			} elsif ($line =~ /foreach/){
+
+					$line =~ s/foreach/for/g;
+
+					if($line =~ /\@ARGV/){
+						$line =~ s/\@ARGV/in sys.argv[1:]/g;
+					}
+
+				$line =~ s/(\)|\()|//g;
+				$line =~ s/{|\}|\{|}//g;
+				$line =~ s/ \n/:\n/;
+				#$line =~ s/foreach/for/;
+
 			}
 
 		print $line;
 
-	} elsif ($line =~ /^if/ || $line =~ /^while/){
+	} elsif ($line =~ /^\s*if/ || $line =~ /^\s*while/){
 
 				# TO ELIMINATE ALL THE BRACKETS AROUND IF or WHILE LOOP. 
 
