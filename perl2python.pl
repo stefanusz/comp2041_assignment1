@@ -3,12 +3,13 @@
 # written by andrewt@cse.unsw.edu.au September 2013
 # as a starting point for COMP2041/9041 assignment 
 # http://cgi.cse.unsw.edu.au/~cs2041/13s2/assignments/perl2python
+use File::Basename;
 
 while ($line = <>) {
+#$file = Basename($line);
+
 
 	if ($line =~ /^#!/ && $. == 1) {
-	
-
 
 		# translate #! line 
 		
@@ -35,8 +36,10 @@ while ($line = <>) {
 		# delete the dollar sign infront of variable after print statement.
 		# remove double quote from enclosing the variable. 
 		# at the same time by not using $1, and change it to s to keep indentation.
-
-		$line =~ s/"|\\n|\$|;//g;
+		if($line =~ /\$/){
+			$line =~ s/\$//g;
+		}
+		$line =~ s/"|\\n|;//g;
 		print "$line";
 		
 		
@@ -46,49 +49,66 @@ while ($line = <>) {
 		#the semi colon after that.
 		$line =~ s/\$//g;
 		$line =~ s/;//g;
-
+		
 		#to remove things with a comma and semi collon inside it 
 		#and anchor it at the last part of the sentence to match new line in a double colon
 			if($line =~ /, ".*"/){
 				$line =~ s/, "\\n"$//;
-			}  
-
-			if ($line =~ /if/ || $line =~ /while/){
+			} elsif ($line =~ /if/ || $line =~ /while/){
 				
 
 				$line =~ s/(\)|\()//g;
 				$line =~ s/{|\}|\{|}//g;
 				$line =~ s/ \n/:\n/;
 
+				#IF BELOW TO CHANGE EQ to == 
 				if($line =~ /eq/){
 					$line =~ s/eq/==/g;
 				}
+
+			}elsif ($line =~ /<STDIN>/){
+				$IMPORT{needed} = 'import sys';
+
+				$line =~ s/<STDIN>/sys.stdin.readline()/g;
+			}elsif ($line =~ /chomp/){
+
+				#CHANGE THE CHOMP TO line.rstrip.
+				$line =~ s/chomp //g;
+				$line =~ s/\n/ = line.rstrip()\n/;
 
 			}
 
 		print $line;
 
 	} elsif ($line =~ /^if/ || $line =~ /^while/){
+
+				# TO ELIMINATE ALL THE BRACKETS AROUND IF or WHILE LOOP. 
+
 		
 				$line =~ s/(\)|\()//g;
 				$line =~ s/{|\}|\{|}//g;
 				$line =~ s/ \n/:\n/;
 
+				#IF BELOW TO CHANGE EQ to == 
 				if($line =~ /eq/){
 					$line =~ s/eq/==/g;
 				}
 				print $line;
 
-	} elsif ($line =~ /<STDIN>/){
+	} elsif ($line =~ /last;/){
+		
 
-		print "LINE COME THROUGH\n";
+		$line =~ s/last;/break/;
+		print $line;
 
 	}elsif($line =~ /}/){
 			$line =~ s/}//g;
-	}else {
+	} else {
 	
 		# Lines we can't translate are turned into comments
 		
 		print "#$line\n";
 	}
 }
+
+
