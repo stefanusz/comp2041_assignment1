@@ -14,18 +14,7 @@ while ($line = <>) {
 		# translate #! line 
 		
 		print "#!/usr/bin/python2.7 -u\n";
-	} elsif ($. == 2){
-
-		$GLOBALSECOND = "\n";
-		 if ($line =~ /^\s*$/) {
-		 	print "$GLOBALSECOND";
-		 }else{
-		 	
-		 	print "$GLOBALSECOND";
-		 	
-		 	print "$line";
-		 }
-	}elsif ($line =~ /^\s*#/ || $line =~ /^\s*$/) {
+	} elsif ($line =~ /^\s*#/ || $line =~ /^\s*$/) {
 	
 		# Blank & comment lines can be passed unchanged
 		
