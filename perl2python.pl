@@ -8,10 +8,23 @@ while ($line = <>) {
 
 	if ($line =~ /^#!/ && $. == 1) {
 	
+
+
 		# translate #! line 
 		
 		print "#!/usr/bin/python2.7 -u\n";
-	} elsif ($line =~ /^\s*#/ || $line =~ /^\s*$/) {
+	} elsif ($. == 2){
+
+		$GLOBALSECOND = "\n";
+		 if ($line =~ /^\s*$/) {
+		 	print "$GLOBALSECOND";
+		 }else{
+		 	
+		 	print "$GLOBALSECOND";
+		 	
+		 	print "$line";
+		 }
+	}elsif ($line =~ /^\s*#/ || $line =~ /^\s*$/) {
 	
 		# Blank & comment lines can be passed unchanged
 		
@@ -42,9 +55,14 @@ while ($line = <>) {
 
 			if ($line =~ /if/ || $line =~ /while/){
 				
+
 				$line =~ s/(\)|\()//g;
 				$line =~ s/{|\}|\{|}//g;
 				$line =~ s/ \n/:\n/;
+
+				if($line =~ /eq/){
+					$line =~ s/eq/==/g;
+				}
 
 			}
 
@@ -56,7 +74,14 @@ while ($line = <>) {
 				$line =~ s/{|\}|\{|}//g;
 				$line =~ s/ \n/:\n/;
 
+				if($line =~ /eq/){
+					$line =~ s/eq/==/g;
+				}
 				print $line;
+
+	} elsif ($line =~ /<STDIN>/){
+
+		print "LINE COME THROUGH\n";
 
 	}elsif($line =~ /}/){
 			$line =~ s/}//g;
