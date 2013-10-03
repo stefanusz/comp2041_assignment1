@@ -19,7 +19,8 @@ while ($line = <>) {
 		# Blank & comment lines can be passed unchanged
 		
 		print $line;
-	} elsif ($line =~ /^\s*print\s*"(.*)\\n"[\s;]*$/) {
+	} elsif ($line =~ /^\s*print\s*/) {
+		# ORGINAL ($line =~ /^\s*print\s*"(.*)\\n"[\s;]*$/)
 		# Python's print adds a new-line character by default
 		# so we need to delete it from the Perl print statement
 		# delete the dollar sign infront of variable after print statement.
