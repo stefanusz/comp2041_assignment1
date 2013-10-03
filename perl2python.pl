@@ -25,10 +25,15 @@ while ($line = <>) {
 		# delete the dollar sign infront of variable after print statement.
 		# remove double quote from enclosing the variable. 
 		# at the same time by not using $1, and change it to s to keep indentation.
+
+		#IF there is $variable then remove the " else do not remove it. 
+		print "LINE PAST EHRE";
 		if($line =~ /\$/){
-			$line =~ s/\$//g;
+			$line =~ s/\$|"//g;
+		} elsif ($line =~ /join/){
+			$line =~ s/join/' '.join(sys.argv[1:])/g;
 		}
-		$line =~ s/"|\\n|;//g;
+		$line =~ s/\\n|;//g;
 		print "$line";
 		
 		
@@ -56,7 +61,7 @@ while ($line = <>) {
 				}
 
 			}elsif ($line =~ /<STDIN>/){
-				$IMPORT{needed} = 'import sys';
+				#$IMPORT{needed} = 'import sys';
 
 				$line =~ s/<STDIN>/sys.stdin.readline()/g;
 			}elsif ($line =~ /chomp/){
@@ -90,7 +95,7 @@ while ($line = <>) {
 		$line =~ s/last;/break/;
 		print $line;
 
-	}elsif($line =~ /}/){
+	} elsif($line =~ /}/){
 			$line =~ s/}//g;
 	} else {
 	
