@@ -4,24 +4,32 @@
 # as a starting point for COMP2041/9041 assignment 
 # http://cgi.cse.unsw.edu.au/~cs2041/13s2/assignments/perl2python
 # edited by Stefanus Husin z3442577
-use File::Basename;
 
-while ($line = <>) {
-#$file = Basename($line);
+use Data::Dumper;
 
+@script = <>; 
+	
+foreach $line (0..$#script){
 
-	if ($line =~ /^#!/ && $. == 1) {
+	if ($script[$line] =~ /<STDIN>| \@ARGV/){
 
+		$IMPORT{'sys'}++;
+		
+	}
+	
+	if ($script[$line] =~ /^#!\/usr\/bin/ ) {
+		#&& $. == 0
+		
 		# translate #! line 
 		
-		print "#!/usr/bin/python2.7 -u\n";
-	} elsif ($line =~ /^\s*#/ || $line =~ /^\s*$/) {
-	
-		# Blank & comment lines can be passed unchanged
+		$script[$line]= "#!/usr/bin/python2.7 -u\n";
+	} elsif ($script[$line] =~ /^\s*#/ || $script[$line] =~ /^\s*$/) {
 		
-		print $line;
-	} elsif ($line =~ /^\s*print\s*/) {
-		# ORGINAL ($line =~ /^\s*print\s*"(.*)\\n"[\s;]*$/)
+		# Blank & comment lines can be passed unchanged
+		$script[$line]= "$script[$line]";
+		
+	} elsif ($script[$line] =~ /^\s*print\s*/) {
+		# ORGINAL ($script[$line] =~ /^\s*print\s*"(.*)\\n"[\s;]*$/)
 		# Python's print adds a new-line character by default
 		# so we need to delete it from the Perl print statement
 		# delete the dollar sign infront of variable after print statement.
@@ -30,113 +38,137 @@ while ($line = <>) {
 
 		#IF there is $variable then remove the " else do not remove it. 
 		
-		if($line =~ /\$/){
+		if($script[$line] =~ /\$/){
 
-			$line =~ s/\$|"//g;
+			$script[$line] =~ s/\$|"//g;
 
-		} elsif ($line =~ /join/){
+		} elsif ($script[$line] =~ /join/){
 
-			$temp = $line;
+			$temp = $script[$line];
 			$temp =~ s/print join\(//g;
 			$temp =~ s/,.*//g;
 			$temp =~ s/\n//g;
 
-			print "TEMP IS $temp\n";
-			print "ORIGINAL LINE $line";
+			
 
-			if($line =~ /\@ARGV/){
+
+			if($script[$line] =~ /\@ARGV/){
 				
-				$for =~ s/\@ARGV/(sys.argv[1:])/g;
-				print "AFTER ARGV SUB $line";
+				$script[$line] ="$temp.join(sys.argv[1:])";
+				
+			}else{
+				$script[$line] =~ /\((.*),(.*)\)/;
+				$var = $2;
+				$var =~ s/ //g;
+				$script[$line] = "$temp.join($var)";
+				
 			}
-			$line =~ s/join/$temp.join()/g;
+			
 
-			$line = "print $temp.join($forARG)";
+			
 			
 		}
-		$line =~ s/\\n|;|,//g;
-		print "$line";
+		$script[$line] =~ s/\\n|;|,//g;
+		$script[$line]= "$script[$line]";
 		
 		
-	} elsif ($line =~ /\$/){
+	} elsif ($script[$line] =~ /\$/){
 
 		#to remove all variable with $ infront of them and remove 
 		#the semi colon after that.
-		$line =~ s/\$//g;
-		$line =~ s/;//g;
+		$script[$line] =~ s/\$//g;
+		$script[$line] =~ s/;//g;
 		
 		#to remove things with a comma and semi collon inside it 
 		#and anchor it at the last part of the sentence to match new line in a double colon
-			if($line =~ /, ".*"/ | $line =~ /,/){
-				$line =~ s/, "\\n"$//;
-			} elsif ($line =~ /if/ || $line =~ /while/){
+			if($script[$line] =~ /, ".*"/ | $script[$line] =~ /,/){
+				$script[$line] =~ s/, "\\n"$//;
+			} elsif ($script[$line] =~ /if/ || $script[$line] =~ /while/){
 				
 
-				$line =~ s/(\)|\()|//g;
-				$line =~ s/{|\}|\{|}//g;
-				$line =~ s/ \n/:\n/;
+				$script[$line] =~ s/(\)|\()|//g;
+				$script[$line] =~ s/{|\}|\{|}//g;
+				$script[$line] =~ s/ \n/:\n/;
 
 				#IF BELOW TO CHANGE EQ to == 
-				if($line =~ /eq/){
-					$line =~ s/eq/==/g;
+				if($script[$line] =~ /eq/){
+					$script[$line] =~ s/eq/==/g;
 				}
 
-			} elsif ($line =~ /<STDIN>/){
-				#$IMPORT{needed} = 'import sys';
+			} elsif ($script[$line] =~ /<STDIN>/){
 
-				$line =~ s/<STDIN>/sys.stdin.readline()/g;
-			} elsif ($line =~ /chomp/){
+				$IMPORT{'sys'}++;
+				
+				$script[$line] =~ s/<STDIN>/sys.stdin.readline()/g;
+			} elsif ($script[$line] =~ /chomp/){
 
 				#CHANGE THE CHOMP TO line.rstrip.
-				$line =~ s/chomp //g;
-				$line =~ s/\n/ = line.rstrip()\n/;
+				$script[$line] =~ s/chomp //g;
+				$script[$line] =~ s/\n/ = line.rstrip()\n/;
 
-			} elsif ($line =~ /foreach/){
+			} elsif ($script[$line] =~ /foreach/){
 
-					$line =~ s/foreach/for/g;
+					$script[$line] =~ s/foreach/for/g;
 
-					if($line =~ /\@ARGV/){
-						$line =~ s/\@ARGV/in sys.argv[1:]/g;
+					if($script[$line] =~ /\@ARGV/){
+						$script[$line] =~ s/\@ARGV/in sys.argv[1:]/g;
 					}
 
-				$line =~ s/(\)|\()|//g;
-				$line =~ s/{|\}|\{|}//g;
-				$line =~ s/ \n/:\n/;
-				#$line =~ s/foreach/for/;
+				$script[$line] =~ s/(\)|\()|//g;
+				$script[$line] =~ s/{|\}|\{|}//g;
+				$script[$line] =~ s/ \n/:\n/;
 
 			}
+		
+		$script[$line]= "$script[$line]";
 
-		print $line;
-
-	} elsif ($line =~ /^\s*if/ || $line =~ /^\s*while/){
+	} elsif ($script[$line] =~ /^\s*if/ || $script[$line] =~ /^\s*while/){
 
 				# TO ELIMINATE ALL THE BRACKETS AROUND IF or WHILE LOOP. 
 
 		
-				$line =~ s/(\)|\()//g;
-				$line =~ s/{|\}|\{|}//g;
-				$line =~ s/ \n/:\n/;
+				$script[$line] =~ s/(\)|\()//g;
+				$script[$line] =~ s/{|\}|\{|}//g;
+				$script[$line] =~ s/ \n/:\n/;
 
 				#IF BELOW TO CHANGE EQ to == 
-				if($line =~ /eq/){
-					$line =~ s/eq/==/g;
+				if($script[$line] =~ /eq/){
+					$script[$line] =~ s/eq/==/g;
 				}
-				print $line;
+				$script[$line]= "$script[$line]";
 
-	} elsif ($line =~ /last;/){
+	} elsif ($script[$line] =~ /last;/){
 		
 
-		$line =~ s/last;/break/;
-		print $line;
+		$script[$line] =~ s/last;/break/;
+		$script[$line]= "$script[$line]";
 
-	} elsif($line =~ /}/){
-			$line =~ s/}//g;
+	} elsif ($script[$line] =~ /elsif/){
+		$script[$line] =~ s/elsif/elif/;
+
+	} elsif($script[$line] =~ /}/){
+			$script[$line] =~ s/.*\}/test/g;
+
+
 	} else {
 	
 		# Lines we can't translate are turned into comments
 		
-		print "#$line\n";
+		$script[$line]= "#$script[$line]";
 	}
+ 
 }
+#@script = grep defined, @script;
+#@script = grep { $_ && !m/^\s+$/ } @script;
+foreach $key (keys %IMPORT){
+	
+	#for every import we have, insert it in the second line
+    splice @script, 1, 0, "import $key\n";                 
+}
+
+foreach $line2 (@script){
+    print "$line2";    #print all the lines
+}
+
 
 
