@@ -13,16 +13,18 @@ foreach $line (0..$#script){
 
 	if ($script[$line] =~ /<STDIN>| \@ARGV/){
 
+		# to cater for the import sys when it encounter STDIN or ARGV
 		$IMPORT{'sys'}++;
 		
 	}
 	
 	if ($script[$line] =~ /^#!\/usr\/bin/ ) {
-		#&& $. == 0
+		#&& $. == 0 -> just for a note. 
 		
 		# translate #! line 
 		
 		$script[$line]= "#!/usr/bin/python2.7 -u\n";
+
 	} elsif ($script[$line] =~ /^\s*#/ || $script[$line] =~ /^\s*$/) {
 		
 		# Blank & comment lines can be passed unchanged
@@ -44,14 +46,13 @@ foreach $line (0..$#script){
 
 		} elsif ($script[$line] =~ /join/){
 
+			#to put the join term in a variable and put it infront. 
 			$temp = $script[$line];
 			$temp =~ s/print join\(//g;
 			$temp =~ s/,.*//g;
 			$temp =~ s/\n//g;
 
-			
-
-
+			#to choose either its ARGV or non ARGV.
 			if($script[$line] =~ /\@ARGV/){
 				
 				$script[$line] ="$temp.join(sys.argv[1:])";
@@ -63,11 +64,9 @@ foreach $line (0..$#script){
 				$script[$line] = "$temp.join($var)";
 				
 			}
-			
 
-			
-			
 		}
+
 		$script[$line] =~ s/\\n|;|,//g;
 		$script[$line]= "$script[$line]";
 		
@@ -114,8 +113,9 @@ foreach $line (0..$#script){
 						$script[$line] =~ s/\@ARGV/in sys.argv[1:]/g;
 					}
 
-				$script[$line] =~ s/(\)|\()|//g;
-				$script[$line] =~ s/{|\}|\{|}//g;
+				#to remove all the opening and closing braces on the same line. 
+				$script[$line] =~ s/(\)|\()//g;
+				$script[$line] =~ s/{|\}|\{//g;
 				$script[$line] =~ s/ \n/:\n/;
 
 			}
@@ -124,11 +124,11 @@ foreach $line (0..$#script){
 
 	} elsif ($script[$line] =~ /^\s*if/ || $script[$line] =~ /^\s*while/){
 
-				# TO ELIMINATE ALL THE BRACKETS AROUND IF or WHILE LOOP. 
+				# to eliminate braces around the if and while loop.
 
 		
-				$script[$line] =~ s/(\)|\()//g;
-				$script[$line] =~ s/{|\}|\{|}//g;
+				$script[$line] =~ s/(\)|\() //g;
+				$script[$line] =~ s/{|\}|\{|} //g;
 				$script[$line] =~ s/ \n/:\n/;
 
 				#IF BELOW TO CHANGE EQ to == 
@@ -139,7 +139,7 @@ foreach $line (0..$#script){
 
 	} elsif ($script[$line] =~ /last;/){
 		
-
+		#change last to break.
 		$script[$line] =~ s/last;/break/;
 		$script[$line]= "$script[$line]";
 
@@ -147,7 +147,8 @@ foreach $line (0..$#script){
 		$script[$line] =~ s/elsif/elif/;
 
 	} elsif($script[$line] =~ /}/){
-			$script[$line] =~ s/.*\}/test/g;
+			#to remove a single closing brace. 
+			$script[$line] =~ s/.*}\n//g;
 
 
 	} else {
@@ -158,8 +159,7 @@ foreach $line (0..$#script){
 	}
  
 }
-#@script = grep defined, @script;
-#@script = grep { $_ && !m/^\s+$/ } @script;
+
 foreach $key (keys %IMPORT){
 	
 	#for every import we have, insert it in the second line
