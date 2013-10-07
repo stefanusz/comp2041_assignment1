@@ -78,10 +78,13 @@ foreach $line (0..$#script){
 		$script[$line] =~ s/\$//g;
 		$script[$line] =~ s/;//g;
 		
+		#print "THE LINE IS $script[$line]";
 		#to remove things with a comma and semi collon inside it 
 		#and anchor it at the last part of the sentence to match new line in a double colon
-			if($script[$line] =~ /, ".*"/ | $script[$line] =~ /,/){
+			if ($script[$line] =~ /, ".*"/ | $script[$line] =~ /,/){
+
 				$script[$line] =~ s/, "\\n"$//;
+
 			} elsif ($script[$line] =~ /if/ || $script[$line] =~ /while/){
 				
 
@@ -91,8 +94,16 @@ foreach $line (0..$#script){
 
 				#IF BELOW TO CHANGE EQ to == 
 				if($script[$line] =~ /eq/){
+
 					$script[$line] =~ s/eq/==/g;
+
+				} elsif ($script[$line] =~ /line = <>/){
+					$IMPORT{'fileinput, re'}++;
+					#To account for while ($line = <>) 
+					print "comes here";
+					$script[$line] =~ s/while line = <>/for line in fileinput.input()/g;
 				}
+
 
 			} elsif ($script[$line] =~ /<STDIN>/){
 
@@ -118,7 +129,7 @@ foreach $line (0..$#script){
 				$script[$line] =~ s/{|\}|\{//g;
 				$script[$line] =~ s/ \n/:\n/;
 
-			}
+			} 
 		
 		$script[$line]= "$script[$line]";
 
@@ -127,14 +138,15 @@ foreach $line (0..$#script){
 				# to eliminate braces around the if and while loop.
 
 		
-				$script[$line] =~ s/(\)|\() //g;
-				$script[$line] =~ s/{|\}|\{|} //g;
+				$script[$line] =~ s/(\)|\()//g;
+				$script[$line] =~ s/{|\}|\{|}//g;
 				$script[$line] =~ s/ \n/:\n/;
 
-				#IF BELOW TO CHANGE EQ to == 
+				#change eq to == when encounter it.
 				if($script[$line] =~ /eq/){
 					$script[$line] =~ s/eq/==/g;
 				}
+
 				$script[$line]= "$script[$line]";
 
 	} elsif ($script[$line] =~ /last;/){
@@ -150,6 +162,12 @@ foreach $line (0..$#script){
 			#to remove a single closing brace. 
 			$script[$line] =~ s/.*}\n//g;
 
+			if($script[$line] =~ /}\s*.*\s*{/){
+			#to remove a single closing brace. 
+			$script[$line] =~ s/{|\}|\{|}//g;
+			$script[$line] =~ s/ $/:/g;
+
+			} 
 
 	} else {
 	
