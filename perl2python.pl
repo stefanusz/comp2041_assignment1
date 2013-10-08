@@ -11,8 +11,8 @@ use Data::Dumper;
 	
 foreach $line (0..$#script){
 
-	if ($script[$line] =~ /<STDIN>| \@ARGV/){
 
+	if ($script[$line] =~ /<STDIN>|\@ARGV|ARGV/){
 		# to cater for the import sys when it encounter STDIN or ARGV
 		$IMPORT{'sys'}++;
 		
@@ -92,16 +92,20 @@ foreach $line (0..$#script){
 				$script[$line] =~ s/{|\}|\{|}//g;
 				$script[$line] =~ s/ \n/:\n/;
 
+				
 				#IF BELOW TO CHANGE EQ to == 
 				if($script[$line] =~ /eq/){
 
 					$script[$line] =~ s/eq/==/g;
 
-				} elsif ($script[$line] =~ /line = <>/){
+				} elsif ($script[$line] =~ /\s.*\s=\s<>/){
 					$IMPORT{'fileinput, re'}++;
 					#To account for while ($line = <>) 
-					print "comes here";
-					$script[$line] =~ s/while line = <>/for line in fileinput.input()/g;
+					
+					$script[$line] =~ /\s(\w*)\s(\w*)/;
+					$word1 = $1;
+
+					$script[$line] =~ s/while $word1 = <>/for $word1 in fileinput.input()/g;
 				}
 
 
@@ -123,13 +127,27 @@ foreach $line (0..$#script){
 					if($script[$line] =~ /\@ARGV/){
 						$script[$line] =~ s/\@ARGV/in sys.argv[1:]/g;
 					}
-
+					
+					#if condition to contain for xrange and grep the condition.
+					$script[$line] =~ /(\(.*\))/;
+					$bracketVar = $1;
+					print "THE VAR IS $bracketVar\n";
 				#to remove all the opening and closing braces on the same line. 
 				$script[$line] =~ s/(\)|\()//g;
 				$script[$line] =~ s/{|\}|\{//g;
 				$script[$line] =~ s/ \n/:\n/;
 
-			} 
+			} elsif ($script[$line] =~ /\ss\/.*\/\//){
+
+				$script[$line] =~ /((.*)\s=~\ss\/(.*)\/\/)/;
+				$varName = $2;
+				$temp = $3;
+				$varName =~ s/\s//g;
+				
+				
+				$script[$line] =~ s/=~\ss\/.*\/\/g/= re.sub(r'$temp', '', $varName)/g;
+
+			}
 		
 		$script[$line]= "$script[$line]";
 
@@ -187,6 +205,5 @@ foreach $key (keys %IMPORT){
 foreach $line2 (@script){
     print "$line2";    #print all the lines
 }
-
 
 
